@@ -3,6 +3,12 @@ import nwalign as nw
 import random
 from align import aligner
 import pairwisealign_1
+import pairwisealign_c1
+import pairwisealign_c2
+import pairwisealign_c3
+import pairwisealign_c4
+import pairwisealign_c5
+
 
 # setup matrix for using alignment...
 MY_MATRIX = {}
@@ -51,6 +57,29 @@ def run_align_pw_python(data):
     for s in data:
         pairwisealign_1.pw_align_python(s[0],s[1])
 #####################################################################           
+def run_align_pw_c1(data):
+    for s in data:
+        pairwisealign_c1.pw_align(s[0],s[1])
+#####################################################################           
+def run_align_pw_c2(data):
+    for s in data:
+        pairwisealign_c2.pw_align(s[0],s[1])
+#####################################################################           
+def run_align_pw_c3(data):
+    for s in data:
+        pairwisealign_c3.pw_align(s[0],s[1])
+#####################################################################           
+#####################################################################           
+def run_align_pw_c4(data):
+    for s in data:
+        pairwisealign_c4.pw_align(s[0],s[1])
+#####################################################################           
+def run_align_pw_c5(data):
+    for s in data:
+        pairwisealign_c5.pw_align(s[0],s[1])
+#####################################################################           
+
+
 
 
 

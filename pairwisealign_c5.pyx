@@ -15,7 +15,7 @@ cdef extern from "stdlib.h":
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-def pw_align(bytes seqAP,bytes seqBP,gapScore=-1, matchScore=1, mismatchScore=-1):
+def pw_align(bytes seqAP,bytes seqBP,int gapScore=-1, int matchScore=1, int mismatchScore=-1):
     cdef DTYPE_t MAX_LEN = 50
 
     cdef DTYPE_t UP = 1
@@ -31,12 +31,12 @@ def pw_align(bytes seqAP,bytes seqBP,gapScore=-1, matchScore=1, mismatchScore=-1
     cdef DTYPE_t mismatch = mismatchScore
 
     
-    cdef int dash = atoi('-')
+    cdef char dash = '-'
         
     # A is rows, B is columns
     
-    cdef np.ndarray[DTYPE_t, ndim=2, mode='c'] scores = np.zeros((lenA+1,lenB+1),dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=2, mode='c'] pointers  = np.zeros((lenA+1,lenB+1),dtype=DTYPE)
+    cdef DTYPE_t[:, ::1] scores = np.zeros((lenA+1,lenB+1),dtype=DTYPE)
+    cdef DTYPE_t[:, ::1] pointers = np.zeros((lenA+1,lenB+1),dtype=DTYPE)
     
     # convert to chars *
     cdef char* seqA = seqAP
@@ -50,15 +50,18 @@ def pw_align(bytes seqAP,bytes seqBP,gapScore=-1, matchScore=1, mismatchScore=-1
     pointers[0, 1:] = LEFT
     pointers[1:,0] = UP
 
-    # setup all gaps row and colum
-    scores[0, 1:] = gap * np.arange(1, lenB + 1, dtype=DTYPE)
-    scores[1:, 0] = gap * np.arange(1, lenA + 1, dtype=DTYPE)
 
     # do the loop through....
     cdef int a
     cdef int b
     cdef char cA
     cdef char cB
+
+    for a in range(1,lenB+1):
+        scores[0,a] = scores[0,a-1] + gap
+    for b in range(1,lenA+1):
+        scores[b,0] = scores[b-1,0] + gap
+
     
     
     for a in range(1,lenA+1):
@@ -92,10 +95,10 @@ def pw_align(bytes seqAP,bytes seqBP,gapScore=-1, matchScore=1, mismatchScore=-1
                     pointers[a,b] = LEFT
        
 
+     
+    cdef DTYPE_t[:] align_a = np.zeros(MAX_LEN,dtype=DTYPE)
+    cdef DTYPE_t[:] align_b = np.zeros(MAX_LEN,dtype=DTYPE)
                        
-    cdef np.ndarray[DTYPE_t, ndim=1, mode='c'] align_a = np.zeros(MAX_LEN,dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1, mode='c'] align_b = np.zeros(MAX_LEN,dtype=DTYPE)
-
     # follow the seqs.
     cdef int p
     cdef int align_counter
@@ -120,14 +123,20 @@ def pw_align(bytes seqAP,bytes seqBP,gapScore=-1, matchScore=1, mismatchScore=-1
         
     align_a = align_a[0:align_counter]
     align_b = align_b[0:align_counter]
-
-#    align_a = align_a[::-1] # reverse
-#    align_b = align_b[::-1] 
+    
+    align_a = align_a[::-1] # reverse
+    align_b = align_b[::-1] 
+    
+    cdef int numMissMatch = 0
+    cdef int i
+    for i in range(0,align_counter):
+        if align_a[i] != align_b[i]:
+            numMissMatch += 1
     
 #    align_a_list= [chr(i) for i in align_a]
 #    align_b_list= [chr(i) for i in align_b]
     
-    return(align_a,align_b)
+    return(np.asarray(align_a),np.asarray(align_b),numMissMatch)
             
 ################################################
 
